@@ -100,6 +100,7 @@ def softmax_loss_vectorized(W, X, y, reg):
   loss = - np.sum(np.log(correct_Probs))
   loss /= num_train
 
+  # D-Loss/D-score per cell; together they form dScores matrix
   dScores = Probs
   dScores[range(num_train), y] -= 1 # yi rule
   # (Scores = X dot W) ==> (dScores = X dot dW) ==> (dW = X.T dot dScores)

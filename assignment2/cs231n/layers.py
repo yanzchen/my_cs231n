@@ -1,6 +1,7 @@
 import numpy as np
 
 
+
 def affine_forward(x, w, b):
   """
   Computes the forward pass for an affine (fully-connected) layer.
@@ -25,6 +26,11 @@ def affine_forward(x, w, b):
   # will need to reshape the input into rows.                                 #
   #############################################################################
   pass
+  #print '#x.shape:', x.shape
+  #print '#w.shape:', w.shape
+  N = x.shape[0]
+  out = np.dot(x.reshape(N, -1), w) + b
+  #print '#out.shape:', out.shape
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -47,12 +53,20 @@ def affine_backward(dout, cache):
   - dw: Gradient with respect to w, of shape (D, M)
   - db: Gradient with respect to b, of shape (M,)
   """
+  # bp chain-rule: D-Loss/D-x = (D-Loss/D-scores) * (D-scores/D-x)
+  # in our code, "dout" is short-hand for (D-Loss/D-out).
+  # (D-scores/D-x) ==> D-(xw+b)/D-x.
+  # Use dimension-analysis to figure out the rest (T or not; dout on left or right).
   x, w, b = cache
   dx, dw, db = None, None, None
   #############################################################################
   # TODO: Implement the affine backward pass.                                 #
   #############################################################################
   pass
+  N = x.shape[0]
+  db = np.sum(dout, axis=0) # db = dout
+  dw = np.dot(x.reshape(N, -1).T, dout) # dw = x.T . dout  
+  dx = np.dot(dout, w.T).reshape(x.shape) # dx = dout . w.T
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -75,6 +89,7 @@ def relu_forward(x):
   # TODO: Implement the ReLU forward pass.                                    #
   #############################################################################
   pass
+  out = np.maximum(0, x)
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -93,11 +108,17 @@ def relu_backward(dout, cache):
   Returns:
   - dx: Gradient with respect to x
   """
+
+  # chain-rule: D-Loss/dx = (D-Loss/D-out) * (D-out/D-x) ==>
+  #    dout * ( (D-(np.maximum(0, x)) / D-x )
   dx, x = None, cache
   #############################################################################
   # TODO: Implement the ReLU backward pass.                                   #
   #############################################################################
   pass
+  # (D-(np.maximum(0, x)) / D-x ) ==> 0 + 1(x>0)
+  dx = dout
+  dx[x <= 0] = 0
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -166,6 +187,16 @@ def batchnorm_forward(x, gamma, beta, bn_param):
     # storing your result in the running_mean and running_var variables.        #
     #############################################################################
     pass
+    x_bar = np.mean(x, axis=0, keepdims=1)
+    running_mean = momentum * running_mean + (1-momentum)*x_bar
+
+    s_bar = np.var(x, axis=0, keepdims=1)
+    running_var = momentum * running_var + (1-momentum)*s_bar
+    
+    out = (x - x_bar) / np.sqrt(s_bar)
+    out = gamma * out + beta
+
+    cache = (x_bar, s_bar)
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
@@ -177,6 +208,8 @@ def batchnorm_forward(x, gamma, beta, bn_param):
     # the out variable.                                                         #
     #############################################################################
     pass
+    out = (x - running_mean) / np.sqrt(running_var)
+    out = gamma * out + beta
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
@@ -326,39 +359,69 @@ def dropout_backward(dout, cache):
 
 
 def conv_forward_naive(x, w, b, conv_param):
-  """
-  A naive implementation of the forward pass for a convolutional layer.
+    """
+    A naive implementation of the forward pass for a convolutional layer.
 
-  The input consists of N data points, each with C channels, height H and width
-  W. We convolve each input with F different filters, where each filter spans
-  all C channels and has height HH and width HH.
+    The input consists of N data points, each with C channels, height H and width
+    W. We convolve each input with F different filters, where each filter spans
+    all C channels and has height HH and width HH.
 
-  Input:
-  - x: Input data of shape (N, C, H, W)
-  - w: Filter weights of shape (F, C, HH, WW)
-  - b: Biases, of shape (F,)
-  - conv_param: A dictionary with the following keys:
-    - 'stride': The number of pixels between adjacent receptive fields in the
-      horizontal and vertical directions.
-    - 'pad': The number of pixels that will be used to zero-pad the input.
+    Input:
+    - x: Input data of shape (N, C, H, W)
+    - w: Filter weights of shape (F, C, HH, WW)
+    - b: Biases, of shape (F,)
+    - conv_param: A dictionary with the following keys:
+        - 'stride': The number of pixels between adjacent receptive fields in the
+        horizontal and vertical directions.
+        - 'pad': The number of pixels that will be used to zero-pad the input.
 
-  Returns a tuple of:
-  - out: Output data, of shape (N, F, H', W') where H' and W' are given by
-    H' = 1 + (H + 2 * pad - HH) / stride
-    W' = 1 + (W + 2 * pad - WW) / stride
-  - cache: (x, w, b, conv_param)
-  """
-  out = None
-  #############################################################################
-  # TODO: Implement the convolutional forward pass.                           #
-  # Hint: you can use the function np.pad for padding.                        #
-  #############################################################################
-  pass
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
-  cache = (x, w, b, conv_param)
-  return out, cache
+    Returns a tuple of:
+    - out: Output data, of shape (N, F, H', W') where H' and W' are given by
+        H' = 1 + (H + 2 * pad - HH) / stride
+        W' = 1 + (W + 2 * pad - WW) / stride
+    - cache: (x, w, b, conv_param)
+    """
+    out = None
+    #############################################################################
+    # TODO: Implement the convolutional forward pass.                           #
+    # Hint: you can use the function np.pad for padding.                        #
+    #############################################################################
+    pass
+    print '#x.shape (N, C, H, W): ', x.shape
+    print '#w.shape (F, C, HH, WW): ', w.shape
+    (N, C, H, W) = x.shape
+    (F, C, HH, WW) = w.shape
+    print conv_param
+    s = conv_param['stride']
+    p = conv_param['pad']
+    H_out = 1 + (H + 2 * p - HH) / s
+    W_out = 1 + (W + 2 * p - WW) / s
+    print '#H_out: ', H_out
+    print '#W_out: ', W_out
+
+    x = np.pad(x, ((0, 0), (0, 0), (p, p), (p, p)), 'constant')
+
+    out = np.zeros((N, F, H_out, W_out))
+    print '#out.shape (N, F, H_out, W_out): ', out.shape
+    for f in range(F):
+        for n in range(N):
+            for hout in range(H_out):
+                for wout in range(W_out):
+                    x_hstart = hout*s
+                    x_wstart = wout*s
+                    x_volume = x[n, :, x_hstart:(x_hstart + HH), x_wstart:(x_wstart + WW)]
+                    #print 'x_volume:\n', x_volume
+
+                    w_volume = w[f]
+                    #print 'w_volume:\n', w_volume
+
+                    out[n, f, hout, wout] = np.sum(x_volume * w_volume) + b[f]
+    #############################################################################
+    #                             END OF YOUR CODE                              #
+    #############################################################################
+    cache = (x, w, b, conv_param)
+    print '#out:\n', out
+    return out, cache
 
 
 def conv_backward_naive(dout, cache):
@@ -545,6 +608,7 @@ def softmax_loss(x, y):
   - dx: Gradient of the loss with respect to x
   """
   probs = np.exp(x - np.max(x, axis=1, keepdims=True))
+  #probs += 1e-6 # for divide-by-zero prevention in log()
   probs /= np.sum(probs, axis=1, keepdims=True)
   N = x.shape[0]
   loss = -np.sum(np.log(probs[np.arange(N), y])) / N

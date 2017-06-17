@@ -120,10 +120,10 @@ def svm_loss_vectorized(W, X, y, reg):
   pass
   # Inspired by bruceoutdoors solution (https://github.com/bruceoutdoors/CS231n):
   #
-  # We build a loss-map on the Scores matrix. Each cell on this loss-map represents
-  # the number of loss-contributing occurrances from the score at that cell position.
-  # For every loss-contributing occurrance at cell [i,j], gradient of X[i] amount will
-  # be assessed to dW[:, j] (one X[i] row and one W-column computes into one Score[i, j]).
+  # We build a loss-map on the Scores matrix. Each cell on this loss-map marks
+  # the number of loss-contributing occurrances from the cell score at that position.
+  # For every loss-contributing occurrance at cell [i,j], gradient of amount-X[i] will
+  # be credited to dW[:, j] (one X[i] row and one W-column computes into one Score[i, j]).
   # Loss-map = dot(X, W) ==> dW = dot(X.T, Loss-map)
   Loss_map = np.zeros(Losses.shape)
   Loss_map[Losses>0] = 1 # every regular cell only contributes to at most 1 loss 
@@ -131,8 +131,8 @@ def svm_loss_vectorized(W, X, y, reg):
   # Target (yi) cell may be associated with multiple negative losses:
   # for each regular loss assessed on a Scores row, a negative-loss
   # is assessed on the target cell.
-  Loss_sum = np.sum(Loss_map, axis=1)
-  Loss_map[range(num_train), y] = -Loss_sum
+  Loss_sum = np.sum(Loss_map, axis=1) # add up non-yi losses on each row into row-sum
+  Loss_map[range(num_train), y] = -Loss_sum # yi cell on each row gets a negative row-sum
 
   dW = np.dot(X.T, Loss_map)
   

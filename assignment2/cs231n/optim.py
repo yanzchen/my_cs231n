@@ -66,6 +66,10 @@ def sgd_momentum(w, dw, config=None):
   # the next_w variable. You should also use and update the velocity v.       #
   #############################################################################
   pass
+  mu = config['momentum']
+  learning_rate = config['learning_rate']
+  v = mu * v - learning_rate * dw
+  next_w = w + v
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -100,6 +104,14 @@ def rmsprop(x, dx, config=None):
   # config['cache'].                                                          #
   #############################################################################
   pass
+  cache = config['cache']
+
+  decay_rate = config['decay_rate']
+  learning_rate = config['learning_rate']
+  cache = decay_rate*cache + (1-decay_rate) * dx**2
+  next_x = x - learning_rate * dx/(np.sqrt(cache) + config['epsilon'])
+  
+  config['cache'] = cache
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -137,13 +149,25 @@ def adam(x, dx, config=None):
   # stored in config.                                                         #
   #############################################################################
   pass
+  learning_rate = config['learning_rate']
+  beta1 = config['beta1']
+  beta2 = config['beta2']
+  epsilon = config['epsilon']
+  m, v, t = config['m'], config['v'], config['t']
+   
+  m = beta1*m + (1-beta1)*dx
+  v = beta2*v + (1-beta2)*(dx**2)
+
+  # bias correction:
+  t += 1
+  m_bc = m / (1 - beta1**t)
+  v_bc = v / (1 - beta2**t)
+
+  next_x = x - learning_rate * m_bc/(np.sqrt(v_bc) + epsilon)
+  config['m'], config['v'], config['t'] = m, v, t
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
   
   return next_x, config
-
-  
-  
-  
 
